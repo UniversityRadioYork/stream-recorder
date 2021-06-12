@@ -4,36 +4,58 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	// "github.com/UniversityRadioYork/stream-recorder/web"
 	"github.com/UniversityRadioYork/stream-recorder/recorder"
+	"gopkg.in/yaml.v2"
 )
+
+type configStream struct {
+	Name     string `yaml:"name"`
+	Endpoint string `yaml:"endpoint"`
+}
+
+type config struct {
+	WebPort int             `yaml:"port"`
+	BaseURL string          `yaml:"baseURL"`
+	Streams []*configStream `yaml:"streams"`
+}
 
 func main() {
 	log.Println("Stream Recorder")
 
-	// web.StartWeb()
-
+	var streams []*recorder.Stream
 	var recordings []recorder.Recording
 	recordingsChannel := make(chan recorder.Recording)
 
-	streams := []recorder.Stream{
-		{
-			Name:     "OB-Line",
-			BaseURL:  "https://audio.ury.org.uk",
-			Endpoint: "OB-Line",
-		},
-		{
-			Name:     "OB-Line2",
-			BaseURL:  "https://audio.ury.org.uk",
-			Endpoint: "OB-Line2",
-		},
+	configYamlFile, err := os.ReadFile("config.yml")
+
+	if err != nil {
+		panic(err) // TODO
 	}
+
+	var config config
+	err = yaml.Unmarshal(configYamlFile, &config)
+
+	if err != nil {
+		panic(err) // TODO
+	}
+
+	for _, stream := range config.Streams {
+		streams = append(streams, &recorder.Stream{
+			Name:     stream.Name,
+			Endpoint: stream.Endpoint,
+			BaseURL:  config.BaseURL,
+		})
+	}
+
+	// web.StartWeb()
 
 	go func() {
 		for {
-			for idx, stream := range streams {
+			for _, stream := range streams {
 				if !stream.Live {
 					res, err := http.Get(fmt.Sprintf("%s/%s", stream.BaseURL, stream.Endpoint))
 
@@ -42,7 +64,7 @@ func main() {
 					}
 
 					if res.StatusCode == 200 {
-						go recorder.RecordStream(&streams[idx], recordingsChannel)
+						go recorder.RecordStream(stream, recordingsChannel)
 					} else {
 						fmt.Printf("%s Not Live\n", stream.Name)
 					}

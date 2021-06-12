@@ -12,7 +12,7 @@ type Stream struct {
 }
 
 type Recording struct {
-	Filename  string
-	Stream    *Stream
-	StartTime time.Time
+	Filename   string    `yaml:"filename"`
+	StreamName string    `yaml:"streamName"`
+	StartTime  time.Time `yaml:"startTime"`
 }

@@ -35,8 +35,8 @@ func RecordStream(stream *Stream, recordingsChannel chan<- Recording) {
 	fmt.Printf("Stopping Recording %s\n", stream.Name)
 
 	recordingsChannel <- Recording{
-		Filename:  filename,
-		Stream:    stream,
-		StartTime: startTime,
+		Filename:   filename,
+		StreamName: stream.Name,
+		StartTime:  startTime,
 	}
 }
