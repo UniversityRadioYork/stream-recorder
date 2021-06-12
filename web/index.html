@@ -1,0 +1,99 @@
+<html>
+
+<head>
+
+    <title>Stream Recording Status</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</head>
+
+<body>
+    <div class="container">
+        <h1>Stream Recording Status</h1>
+        <table class="table table-bordered">
+            <tr id="ob-row" class="table-secondary">
+                <td>
+                    <div id="ob-marker" class="spinner-grow"></div> OB-Line <span id="ob-state">Not Recording</span>
+                </td>
+            </tr>
+            <tr id="ob2-row" class="table-secondary">
+                <td>
+                    <div id="ob2-marker" class="spinner-grow"></div> OB-Line2 <span id="ob2-state">Not Recording</span>
+                </td>
+            </tr>
+            <tr id="r1-row" class="table-secondary">
+                <td>
+                    <div id="r1-marker" class="spinner-grow"></div> Roses1 <span id="r1-state">Not Recording</span>
+                </td>
+            </tr>
+            <tr id="r2-row" class="table-secondary">
+                <td>
+                    <div id="r2-marker" class="spinner-grow"></div> Roses2 <span id="r2-state">Not Recording</span>
+                </td>
+            </tr>
+            <tr id="r3-row" class="table-secondary">
+                <td>
+                    <div id="r3-marker" class="spinner-grow"></div> Roses3 <span id="r3-state">Not Recording</span>
+                </td>
+            </tr>
+            <tr id="r4-row" class="table-secondary">
+                <td>
+                    <div id="r4-marker" class="spinner-grow"></div> Roses4 <span id="r4-state">Not Recording</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        ["ob", "ob2", "r1", "r2", "r3", "r4"].forEach(e => {
+            document.getElementById(e + "-marker").style.display = "none";
+        });
+
+        const record = (stream) => {
+            document.getElementById(stream + "-state").innerText = "RECORDING";
+            document.getElementById(stream + "-row").classList.remove("table-secondary");
+            document.getElementById(stream + "-row").classList.add("table-danger");
+            document.getElementById(stream + "-marker").style.display = "inline-block";
+        }
+
+        const stopRecord = (stream) => {
+            document.getElementById(stream + "-state").innerText = "Not Recording";
+            document.getElementById(stream + "-row").classList.remove("table-danger");
+            document.getElementById(stream + "-row").classList.add("table-secondary");
+            document.getElementById(stream + "-marker").style.display = "none";
+        }
+
+        const wsHandler = () => {
+            var ws = new WebSocket((window.location.protocol === "https://" ? "wss://" : "ws://") + window.location.host + "/ws");
+
+            ws.onopen = () => {
+                ws.send("QUERY");
+            }
+
+            ws.onmessage = (e) => {
+                message = e.data.split(":");
+                switch (message[0]) {
+                    case "RECORD":
+                        record(message[1]);
+                        break
+                    case "STOP":
+                        stopRecord(message[1]);
+                }
+            }
+
+            ws.onclose = () => {
+                ws = null;
+                wsHandler();
+            }
+        }
+
+        wsHandler();
+    </script>
+</body>
+
+
+</html>
