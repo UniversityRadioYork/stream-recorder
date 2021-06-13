@@ -6,17 +6,22 @@ function App() {
 	const [recordings, setRecordings] = useState([]);
 
 	useEffect(() => {
-		fetch("/recordings")
+		fetch("/recordings-json")
 			.then((res) => res.json())
 			.then((data) => setRecordings(data));
 	}, []);
 
 	return (
 		<div className="App">
-			<h1> Live </h1> <h1> Recordings </h1>{" "}
-			{recordings.map((recording, idx) => (
-				<Recording key={idx} recording={recording} />
-			))}{" "}
+			<h1> Live </h1>
+			<div className="flex-container"></div>
+			<br />
+			<h1> Recordings </h1>
+			<div className="flex-container">
+				{recordings.map((recording, idx) => (
+					<Recording key={idx} recording={recording} />
+				))}
+			</div>
 		</div>
 	);
 }

@@ -1,9 +1,9 @@
 const Recording = ({ recording }) => {
 	return (
-		<div>
+		<div className="recording">
 			<b>{recording.streamName}</b>
 			<p>{recording.startTime}</p>
-			<a href={"/recordings/" + recording.filename}>Download</a>
+			<a href={"/" + recording.filename}>Download</a>
 		</div>
 	);
 };

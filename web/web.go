@@ -11,10 +11,13 @@ import (
 
 func StartWeb(port int, recordings *[]recorder.Recording) {
 
-	fs := http.FileServer(http.Dir("frontend/build"))
-	http.Handle("/", fs)
+	webFS := http.FileServer(http.Dir("frontend/build"))
+	http.Handle("/", webFS)
 
-	http.HandleFunc("/recordings", func(w http.ResponseWriter, r *http.Request) {
+	recordingsFS := http.FileServer(http.Dir("recordings"))
+	http.Handle("/recordings/", http.StripPrefix("/recordings/", recordingsFS))
+
+	http.HandleFunc("/recordings-json", func(w http.ResponseWriter, r *http.Request) {
 		jsonData, err := json.Marshal(recordings)
 		if err != nil {
 			panic(err) // TODO
