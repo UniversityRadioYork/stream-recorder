@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/UniversityRadioYork/stream-recorder/recorder"
@@ -51,6 +52,20 @@ func main() {
 		})
 	}
 
+	recordingsYamlFile, err := os.ReadFile("recordings.yml")
+
+	if err != nil {
+		if !strings.Contains(err.Error(), "no such file") {
+			panic(err) // TODO
+		}
+	}
+
+	err = yaml.Unmarshal(recordingsYamlFile, &recordings)
+
+	if err != nil {
+		panic(err) // TODO
+	}
+
 	go func() {
 		for {
 			for _, stream := range streams {
@@ -75,6 +90,11 @@ func main() {
 	go func() {
 		for msg := range recordingsChannel {
 			recordings = append(recordings, msg)
+			yamlData, err := yaml.Marshal(recordings)
+			if err != nil {
+				panic(err)
+			}
+			os.WriteFile("recordings.yml", yamlData, 0222)
 		}
 	}()
 

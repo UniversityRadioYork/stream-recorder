@@ -15,7 +15,6 @@ func StartWeb(port int, recordings *[]recorder.Recording) {
 	})
 
 	http.HandleFunc("/recordings", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(recordings)
 		jsonData, err := json.Marshal(recordings)
 		if err != nil {
 			panic(err) // TODO
