@@ -10,9 +10,9 @@ import (
 )
 
 func StartWeb(port int, recordings *[]recorder.Recording) {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "web/index.html")
-	})
+
+	fs := http.FileServer(http.Dir("frontend/build"))
+	http.Handle("/", fs)
 
 	http.HandleFunc("/recordings", func(w http.ResponseWriter, r *http.Request) {
 		jsonData, err := json.Marshal(recordings)

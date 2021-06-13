@@ -1,6 +1,6 @@
 import "./App.css";
 import { useState, useEffect } from "react";
-import { Recording } from "./Recording";
+import Recording from "./Recording";
 
 function App() {
 	const [recordings, setRecordings] = useState([]);
