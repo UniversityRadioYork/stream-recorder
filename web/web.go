@@ -1,21 +1,31 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/UniversityRadioYork/stream-recorder/recorder"
 )
 
-const PORT = 3000
-
-func StartWeb() {
+func StartWeb(port int, recordings *[]recorder.Recording) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "web/index.html")
 	})
 
-	log.Printf("Listening on port %v", PORT)
+	http.HandleFunc("/recordings", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(recordings)
+		jsonData, err := json.Marshal(recordings)
+		if err != nil {
+			panic(err) // TODO
+		}
+		w.Write(jsonData)
+	})
 
-	err := http.ListenAndServe(fmt.Sprintf(":%v", PORT), nil)
+	log.Printf("Listening on port %v", port)
+
+	err := http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
 	if err != nil {
 		log.Fatal(err)
 	}

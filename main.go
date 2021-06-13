@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	// "github.com/UniversityRadioYork/stream-recorder/web"
 	"github.com/UniversityRadioYork/stream-recorder/recorder"
+	"github.com/UniversityRadioYork/stream-recorder/web"
 	"gopkg.in/yaml.v2"
 )
 
@@ -27,7 +27,7 @@ func main() {
 	log.Println("Stream Recorder")
 
 	var streams []*recorder.Stream
-	var recordings []recorder.Recording
+	var recordings []recorder.Recording = make([]recorder.Recording, 0)
 	recordingsChannel := make(chan recorder.Recording)
 
 	configYamlFile, err := os.ReadFile("config.yml")
@@ -51,8 +51,6 @@ func main() {
 		})
 	}
 
-	// web.StartWeb()
-
 	go func() {
 		for {
 			for _, stream := range streams {
@@ -74,8 +72,12 @@ func main() {
 		}
 	}()
 
-	for msg := range recordingsChannel {
-		recordings = append(recordings, msg)
-	}
+	go func() {
+		for msg := range recordingsChannel {
+			recordings = append(recordings, msg)
+		}
+	}()
+
+	web.StartWeb(config.WebPort, &recordings)
 
 }
