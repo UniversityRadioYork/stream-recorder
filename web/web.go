@@ -18,6 +18,8 @@ func StartWeb(port int, recordings *[]recorder.Recording) {
 	http.Handle("/recordings/", http.StripPrefix("/recordings/", recordingsFS))
 
 	http.HandleFunc("/recordings-json", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		jsonData, err := json.Marshal(recordings)
 		if err != nil {
 			panic(err) // TODO

@@ -6,7 +6,11 @@ function App() {
 	const [recordings, setRecordings] = useState([]);
 
 	useEffect(() => {
-		fetch("/recordings-json")
+		let endpoint =
+			process.env.NODE_ENV === "production"
+				? "/recordings-json"
+				: "http://localhost:3001/recordings-json";
+		fetch(endpoint)
 			.then((res) => res.json())
 			.then((data) => setRecordings(data));
 	}, []);
