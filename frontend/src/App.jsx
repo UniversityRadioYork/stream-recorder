@@ -17,10 +17,10 @@ function App() {
 
 	return (
 		<div className="App">
-			<h1> Live </h1>
+			<h1>((URY)) Stream Recorder</h1>
+			<h2> Live </h2>
 			<div className="flex-container"></div>
-			<br />
-			<h1> Recordings </h1>
+			<h2> Recordings </h2>
 			<div className="flex-container">
 				{recordings.map((recording, idx) => (
 					<Recording key={idx} recording={recording} />
