@@ -6,10 +6,17 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/UniversityRadioYork/stream-recorder/recorder"
+	d "github.com/UniversityRadioYork/stream-recorder/data"
+	"github.com/gorilla/websocket"
 )
 
-func StartWeb(port int, recordings *[]recorder.Recording) {
+type websocketH struct {
+	ws *websocket.Conn
+}
+
+var WebsocketMaster websocketH = websocketH{}
+
+func StartWeb(port int, recordings *[]d.Recording, streams []*d.Stream) {
 
 	webFS := http.FileServer(http.Dir("frontend/build"))
 	http.Handle("/", webFS)
@@ -26,6 +33,8 @@ func StartWeb(port int, recordings *[]recorder.Recording) {
 		}
 		w.Write(jsonData)
 	})
+
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) { WebsocketMaster.websocketHandler(w, r, streams) })
 
 	log.Printf("Listening on port %v", port)
 

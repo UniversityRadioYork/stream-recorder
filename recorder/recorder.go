@@ -6,10 +6,14 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	d "github.com/UniversityRadioYork/stream-recorder/data"
+	"github.com/UniversityRadioYork/stream-recorder/web"
 )
 
-func RecordStream(stream *Stream, recordingsChannel chan<- Recording) {
+func RecordStream(stream *d.Stream, recordingsChannel chan<- d.Recording) {
 	stream.Live = true
+	web.WebsocketMaster.PushUpdate(*stream, true)
 	fmt.Printf("Recording %s\n", stream.Name)
 
 	resp, err := http.Get(fmt.Sprintf("%s/%s", stream.BaseURL, stream.Endpoint))
@@ -32,9 +36,10 @@ func RecordStream(stream *Stream, recordingsChannel chan<- Recording) {
 	}
 
 	stream.Live = false
+	web.WebsocketMaster.PushUpdate(*stream, false)
 	fmt.Printf("Stopping Recording %s\n", stream.Name)
 
-	recordingsChannel <- Recording{
+	recordingsChannel <- d.Recording{
 		Filename:   filename,
 		StreamName: stream.Name,
 		StartTime:  startTime,

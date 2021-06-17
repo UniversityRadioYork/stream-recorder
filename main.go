@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	d "github.com/UniversityRadioYork/stream-recorder/data"
 	"github.com/UniversityRadioYork/stream-recorder/recorder"
 	"github.com/UniversityRadioYork/stream-recorder/web"
 	"gopkg.in/yaml.v2"
@@ -27,9 +28,9 @@ type config struct {
 func main() {
 	log.Println("Stream Recorder")
 
-	var streams []*recorder.Stream
-	var recordings []recorder.Recording = make([]recorder.Recording, 0)
-	recordingsChannel := make(chan recorder.Recording)
+	var streams []*d.Stream
+	var recordings []d.Recording = make([]d.Recording, 0)
+	recordingsChannel := make(chan d.Recording)
 
 	configYamlFile, err := os.ReadFile("config.yml")
 
@@ -45,7 +46,7 @@ func main() {
 	}
 
 	for _, stream := range config.Streams {
-		streams = append(streams, &recorder.Stream{
+		streams = append(streams, &d.Stream{
 			Name:     stream.Name,
 			Endpoint: stream.Endpoint,
 			BaseURL:  config.BaseURL,
@@ -98,6 +99,6 @@ func main() {
 		}
 	}()
 
-	web.StartWeb(config.WebPort, &recordings)
+	web.StartWeb(config.WebPort, &recordings, streams)
 
 }

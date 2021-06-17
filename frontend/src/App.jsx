@@ -13,6 +13,12 @@ function App() {
 		fetch(endpoint)
 			.then((res) => res.json())
 			.then((data) => setRecordings(data));
+
+		let ws = new WebSocket("ws://localhost:3001/ws");
+		ws.onmessage = (ev) => {
+			console.log(ev);
+		};
+		ws.onopen = () => ws.send("QUERY");
 	}, []);
 
 	return (
