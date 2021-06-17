@@ -16,7 +16,14 @@ function App() {
 			.then((res) => res.json())
 			.then((data) => setRecordings(data));
 
-		let ws = new WebSocket("ws://localhost:3001/ws");
+		let wsEndpoint =
+			process.env.NODE_ENV === "production"
+				? `ws${window.location.protocol === "https" ? "s" : ""}://${
+						window.location.hostname
+				  }:${window.location.port}/ws`
+				: "ws://localhost:3001/ws";
+
+		let ws = new WebSocket(wsEndpoint);
 		ws.onmessage = (ev) => {
 			let message = ev.data.split(":");
 			setStreams((s) => ({
@@ -32,7 +39,7 @@ function App() {
 		<div className="App">
 			<h1>((URY)) Stream Recorder</h1>
 			<h2> Live </h2>
-			<div className="flex-container">
+			<div className="flex-container live-container">
 				{Object.keys(streams).map((stream, idx) => (
 					<Stream
 						key={"stream" + idx}

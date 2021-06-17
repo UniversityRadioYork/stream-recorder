@@ -12,6 +12,11 @@
 .flex-container {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.live-container {
+    justify-content: center;
 }
 
 .live {
