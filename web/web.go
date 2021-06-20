@@ -11,10 +11,10 @@ import (
 )
 
 type websocketH struct {
-	clients []*websocket.Conn
+	clients map[*websocket.Conn]bool
 }
 
-var WebsocketMaster websocketH = websocketH{}
+var WebsocketMaster websocketH = websocketH{clients: make(map[*websocket.Conn]bool)}
 
 func StartWeb(port int, recordings *[]d.Recording, streams []*d.Stream) {
 
