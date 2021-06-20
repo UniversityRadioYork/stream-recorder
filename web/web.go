@@ -11,7 +11,7 @@ import (
 )
 
 type websocketH struct {
-	ws *websocket.Conn
+	clients []*websocket.Conn
 }
 
 var WebsocketMaster websocketH = websocketH{}

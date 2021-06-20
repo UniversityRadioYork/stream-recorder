@@ -14,14 +14,14 @@ import (
 
 func RecordStream(stream *d.Stream, recordingsChannel chan<- d.Recording) {
 	stream.Live = true
-	web.WebsocketMaster.PushUpdate(*stream, true)
+	go web.WebsocketMaster.PushUpdate(*stream, true)
 
 	defer func() {
 		stream.Live = false
-		web.WebsocketMaster.PushUpdate(*stream, false)
+		go web.WebsocketMaster.PushUpdate(*stream, false)
 	}()
 
-	fmt.Printf("Recording %s\n", stream.Name)
+	log.Printf("Recording %s\n", stream.Name)
 
 	strm := fmt.Sprintf("%s/%s", stream.BaseURL, stream.Endpoint)
 	resp, err := http.Get(strm)
@@ -46,7 +46,7 @@ func RecordStream(stream *d.Stream, recordingsChannel chan<- d.Recording) {
 		return
 	}
 
-	fmt.Printf("Stopping Recording %s\n", stream.Name)
+	log.Printf("Stopping Recording %s\n", stream.Name)
 
 	recordingsChannel <- d.Recording{
 		Filename:   filename,

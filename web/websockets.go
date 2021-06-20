@@ -16,16 +16,17 @@ var upgrader = websocket.Upgrader{
 }
 
 func (h *websocketH) websocketHandler(w http.ResponseWriter, r *http.Request, streams []*d.Stream) {
-	var err error
-	h.ws, err = upgrader.Upgrade(w, r, nil)
+	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("Failed to generate upgrader: %s", err)
 		return
 	}
-	defer h.ws.Close()
+	defer ws.Close()
+
+	h.clients = append(h.clients, ws)
 
 	for {
-		_, message, err := h.ws.ReadMessage()
+		_, message, err := ws.ReadMessage()
 		if err != nil {
 			log.Printf("Failed to read WebSocket message: %s", err)
 		}
@@ -40,5 +41,7 @@ func (h *websocketH) websocketHandler(w http.ResponseWriter, r *http.Request, st
 }
 
 func (h *websocketH) PushUpdate(strm d.Stream, state bool) {
-	h.ws.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%s:%v", strm.Name, strm.Live)))
+	for _, client := range h.clients {
+		client.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("%s:%v", strm.Name, strm.Live)))
+	}
 }
