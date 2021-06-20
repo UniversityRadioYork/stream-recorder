@@ -81,6 +81,7 @@ func main() {
 							go recorder.RecordStream(stream, recordingsChannel)
 						}
 					}
+					res.Body.Close()
 				}
 			}
 			time.Sleep(time.Duration(5) * time.Second)
