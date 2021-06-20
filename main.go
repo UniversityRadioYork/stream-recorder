@@ -35,14 +35,14 @@ func main() {
 	configYamlFile, err := os.ReadFile("config.yml")
 
 	if err != nil {
-		panic(err) // TODO
+		log.Panicf("Error reading YAML config file: %s", err)
 	}
 
 	var config config
 	err = yaml.Unmarshal(configYamlFile, &config)
 
 	if err != nil {
-		panic(err) // TODO
+		log.Panicf("Error decoding YAML config: %s", err)
 	}
 
 	for _, stream := range config.Streams {
@@ -57,30 +57,29 @@ func main() {
 
 	if err != nil {
 		if !strings.Contains(err.Error(), "no such file") {
-			panic(err) // TODO
+			log.Panicf("Failed reading recordings file: %s", err)
 		}
 	}
 
 	err = yaml.Unmarshal(recordingsYamlFile, &recordings)
 
 	if err != nil {
-		panic(err) // TODO
+		log.Panicf("Error decoding YAML recordings file: %s", err)
 	}
 
 	go func() {
 		for {
 			for _, stream := range streams {
 				if !stream.Live {
-					res, err := http.Get(fmt.Sprintf("%s/%s", stream.BaseURL, stream.Endpoint))
+					strm := fmt.Sprintf("%s/%s", stream.BaseURL, stream.Endpoint)
+					res, err := http.Get(strm)
 
 					if err != nil {
-						panic(err) // TODO
-					}
-
-					if res.StatusCode == 200 {
-						go recorder.RecordStream(stream, recordingsChannel)
+						log.Printf("Failed to GET stream %s: %s\n", strm, err)
 					} else {
-						fmt.Printf("%s Not Live\n", stream.Name)
+						if res.StatusCode == 200 {
+							go recorder.RecordStream(stream, recordingsChannel)
+						}
 					}
 				}
 			}
@@ -93,9 +92,13 @@ func main() {
 			recordings = append(recordings, msg)
 			yamlData, err := yaml.Marshal(recordings)
 			if err != nil {
-				panic(err)
+				log.Printf("Failed to marshal YAML for all recordings: %s\n", err)
+			} else {
+				err = os.WriteFile("recordings.yml", yamlData, 0222)
+				if err != nil {
+					log.Printf("Failed to write YAML recordings file: %s\n", err)
+				}
 			}
-			os.WriteFile("recordings.yml", yamlData, 0222)
 		}
 	}()
 

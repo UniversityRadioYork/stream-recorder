@@ -29,14 +29,15 @@ func StartWeb(port int, recordings *[]d.Recording, streams []*d.Stream) {
 
 		jsonData, err := json.Marshal(recordings)
 		if err != nil {
-			panic(err) // TODO
+			log.Printf("Failed to marshall JSON data for recordings: %s\n", err)
+		} else {
+			w.Write(jsonData)
 		}
-		w.Write(jsonData)
 	})
 
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) { WebsocketMaster.websocketHandler(w, r, streams) })
 
-	log.Printf("Listening on port %v", port)
+	log.Printf("Listening on port %v\n", port)
 
 	err := http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
 	if err != nil {

@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	d "github.com/UniversityRadioYork/stream-recorder/data"
@@ -18,14 +19,15 @@ func (h *websocketH) websocketHandler(w http.ResponseWriter, r *http.Request, st
 	var err error
 	h.ws, err = upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		panic(err) // TODO
+		log.Printf("Failed to generate upgrader: %s", err)
+		return
 	}
 	defer h.ws.Close()
 
 	for {
 		_, message, err := h.ws.ReadMessage()
 		if err != nil {
-			panic(err) // TODO
+			log.Printf("Failed to read WebSocket message: %s", err)
 		}
 
 		if string(message) == "QUERY" {
