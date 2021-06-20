@@ -80,8 +80,8 @@ func main() {
 						if res.StatusCode == 200 {
 							go recorder.RecordStream(stream, recordingsChannel)
 						}
+						res.Body.Close()
 					}
-					res.Body.Close()
 				}
 			}
 			time.Sleep(time.Duration(5) * time.Second)
