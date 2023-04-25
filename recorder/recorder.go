@@ -1,6 +1,7 @@
 package recorder
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -12,7 +13,7 @@ import (
 	"github.com/UniversityRadioYork/stream-recorder/web"
 )
 
-func RecordStream(stream *d.Stream, recordingsChannel chan<- d.Recording) {
+func RecordStream(stream *d.Stream, recordingsChannel chan<- d.RecordingInstruction) {
 	stream.Live = true
 	go web.WebsocketMaster.PushUpdate(*stream, true)
 
@@ -31,26 +32,43 @@ func RecordStream(stream *d.Stream, recordingsChannel chan<- d.Recording) {
 	}
 	defer resp.Body.Close()
 
-	startTime := time.Now()
-	filename := fmt.Sprintf("recordings/%s%v.mp3", stream.Endpoint, startTime.Unix())
-	recording, err := os.Create(filename)
-	if err != nil {
-		log.Printf("Failed making recording file %s: %s", filename, err)
-		return
-	}
-	defer recording.Close()
+	for {
 
-	_, err = io.Copy(recording, resp.Body)
-	if err != nil {
-		log.Printf("Failed copying response body to file: %s", err)
-		return
+		startTime := time.Now()
+		filename := fmt.Sprintf("recordings/%s.%v.mp3", stream.Endpoint, startTime.Unix())
+		recording, err := os.Create(filename)
+		if err != nil {
+			log.Printf("Failed making recording file %s: %s", filename, err)
+			return
+		}
+
+		_, err = io.Copy(recording, &writerWithEnd{
+			standardResponse: resp.Body,
+			endTime:          time.Now().Add(time.Duration(d.RecordingLength) * time.Minute),
+		})
+
+		if err != nil {
+			if !errors.Is(err, timeout) {
+				log.Printf("Failed copying response body to file: %s", err)
+				recording.Close()
+				return
+			} else {
+				recording.Close()
+				continue
+			}
+
+		}
+
+		recording.Close()
+		break
+
 	}
 
 	log.Printf("Stopping Recording %s\n", stream.Name)
 
-	recordingsChannel <- d.Recording{
-		Filename:   filename,
-		StreamName: stream.Name,
-		StartTime:  startTime,
-	}
+	// recordingsChannel <- d.Recording{
+	// 	Filename:   filename,
+	// 	StreamName: stream.Name,
+	// 	StartTime:  startTime,
+	// }
 }
