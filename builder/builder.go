@@ -18,7 +18,10 @@ import (
 func buildRecording(id uuid.UUID, startTime time.Time, endTime time.Time, stream data.Stream, recordingsChannel chan<- data.RecordingInstruction) {
 	var filesToJoin []string
 
-	filepath.WalkDir("recordings", func(path string, de fs.DirEntry, _ error) error {
+	filepath.WalkDir("recordings", func(path string, de fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
 
 		if de.IsDir() {
 			return nil
@@ -46,25 +49,48 @@ func buildRecording(id uuid.UUID, startTime time.Time, endTime time.Time, stream
 		return nil
 	})
 
+	if len(filesToJoin) == 0 {
+		fmt.Println("no files to join")
+		return
+	}
+
 	sort.Strings(filesToJoin)
 
-	fileStartTimeUnix, _ := strconv.Atoi(strings.Split(filesToJoin[0], ".")[1])
+	fileStartTimeUnix, err := strconv.Atoi(strings.Split(filesToJoin[0], ".")[1])
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	fileStartTime := time.Unix(int64(fileStartTimeUnix), 0)
 
-	fileEndTimeUnix, _ := strconv.Atoi(strings.Split(filesToJoin[len(filesToJoin)-1], ".")[1])
+	fileEndTimeUnix, err := strconv.Atoi(strings.Split(filesToJoin[len(filesToJoin)-1], ".")[1])
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	fileEndTime := time.Unix(int64(fileEndTimeUnix), 0).Add(time.Duration(data.RecordingLength) * time.Minute)
 
-	// TODO all the errors around here
-
-	outFile, _ := os.Create(fmt.Sprintf("recordings/%v.mp3", id.String()))
+	outFile, err := os.Create(fmt.Sprintf("recordings/%v.mp3", id.String()))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	defer outFile.Close()
+
 	for _, clip := range filesToJoin {
-		clipFile, _ := os.Open(clip)
+		clipFile, err := os.Open(clip)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
 		io.Copy(outFile, clipFile)
 		clipFile.Close()
 	}
 
-	// TODO updated start times
 	recordingsChannel <- data.RecordingInstruction{
 		Instruction: data.Update,
 		Recording: data.Recording{

@@ -51,20 +51,46 @@ func StartWeb(port int, recordings *[]d.Recording, streams []*d.Stream, recordin
 
 		var bodyData map[string]string
 
-		// TODO errors
 		defer r.Body.Close()
-		body, _ := io.ReadAll(r.Body)
-		_ = json.Unmarshal(body, &bodyData)
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			fmt.Fprint(w, err)
+			return
 
-		st, _ := time.Parse(time.RFC3339, bodyData["startTime"])
-		et, _ := time.Parse(time.RFC3339, bodyData["endTime"])
+		}
+		err = json.Unmarshal(body, &bodyData)
+		if err != nil {
+			fmt.Fprint(w, err)
+			return
+
+		}
+
+		st, err := time.Parse(time.RFC3339, bodyData["startTime"])
+		if err != nil {
+			fmt.Fprint(w, err)
+			return
+
+		}
+
+		et, err := time.Parse(time.RFC3339, bodyData["endTime"])
+		if err != nil {
+			fmt.Fprint(w, err)
+			return
+
+		}
 
 		var str d.Stream
+		var found bool
 		for _, v := range streams {
 			if v.Endpoint == bodyData["stream"] {
 				str = *v
+				found = true
 				break
 			}
+		}
+		if !found {
+			fmt.Fprintf(w, "%s not found", bodyData["stream"])
+			return
 		}
 
 		fmt.Fprint(w, builder.RequestRecording(bodyData["name"], st, et, str, recordingsChannel))
