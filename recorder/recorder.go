@@ -13,7 +13,7 @@ import (
 	"github.com/UniversityRadioYork/stream-recorder/web"
 )
 
-func RecordStream(stream *d.Stream, recordingsChannel chan<- d.Recording) {
+func RecordStream(stream *d.Stream, recordingsChannel chan<- d.RecordingInstruction) {
 	stream.Live = true
 	go web.WebsocketMaster.PushUpdate(*stream, true)
 
@@ -35,7 +35,7 @@ func RecordStream(stream *d.Stream, recordingsChannel chan<- d.Recording) {
 	for {
 
 		startTime := time.Now()
-		filename := fmt.Sprintf("recordings/%s%v.mp3", stream.Endpoint, startTime.Unix())
+		filename := fmt.Sprintf("recordings/%s.%v.mp3", stream.Endpoint, startTime.Unix())
 		recording, err := os.Create(filename)
 		if err != nil {
 			log.Printf("Failed making recording file %s: %s", filename, err)
@@ -44,7 +44,7 @@ func RecordStream(stream *d.Stream, recordingsChannel chan<- d.Recording) {
 
 		_, err = io.Copy(recording, &writerWithEnd{
 			standardResponse: resp.Body,
-			endTime:          time.Now().Add(1 * time.Minute),
+			endTime:          time.Now().Add(time.Duration(d.RecordingLength) * time.Minute),
 		})
 
 		if err != nil {

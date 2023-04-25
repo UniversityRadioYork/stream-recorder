@@ -3,9 +3,12 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/UniversityRadioYork/stream-recorder/builder"
 	d "github.com/UniversityRadioYork/stream-recorder/data"
 	"github.com/gorilla/websocket"
 )
@@ -16,7 +19,7 @@ type websocketH struct {
 
 var WebsocketMaster websocketH = websocketH{clients: make(map[*websocket.Conn]bool)}
 
-func StartWeb(port int, recordings *[]d.Recording, streams []*d.Stream) {
+func StartWeb(port int, recordings *[]d.Recording, streams []*d.Stream, recordingsChannel chan<- d.RecordingInstruction) {
 
 	webFS := http.FileServer(http.Dir("frontend/build"))
 	http.Handle("/", webFS)
@@ -36,6 +39,34 @@ func StartWeb(port int, recordings *[]d.Recording, streams []*d.Stream) {
 	})
 
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) { WebsocketMaster.websocketHandler(w, r, streams) })
+
+	http.HandleFunc("/request", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			fmt.Fprintf(w, "%s not allowed", r.Method)
+			return
+		}
+
+		var bodyData map[string]string
+
+		// TODO errors
+		defer r.Body.Close()
+		body, _ := io.ReadAll(r.Body)
+		_ = json.Unmarshal(body, &bodyData)
+
+		st, _ := time.Parse(time.RFC3339, bodyData["startTime"])
+		et, _ := time.Parse(time.RFC3339, bodyData["endTime"])
+
+		var str d.Stream
+		for _, v := range streams {
+			if v.Endpoint == bodyData["stream"] {
+				str = *v
+				break
+			}
+		}
+
+		fmt.Fprint(w, builder.RequestRecording(bodyData["name"], st, et, str, recordingsChannel))
+	})
 
 	log.Printf("Listening on port %v\n", port)
 

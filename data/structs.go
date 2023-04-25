@@ -4,6 +4,8 @@ import (
 	"time"
 )
 
+const RecordingLength int = 5
+
 type Stream struct {
 	Name     string
 	Endpoint string
@@ -11,8 +13,27 @@ type Stream struct {
 	Live     bool
 }
 
+type StreamState string
+
+const (
+	Creating StreamState = "Creating"
+	Ready    StreamState = "Ready"
+)
+
 type Recording struct {
-	Filename   string    `yaml:"filename" json:"filename"`
-	StreamName string    `yaml:"streamName" json:"streamName"`
-	StartTime  time.Time `yaml:"startTime" json:"startTime"`
+	ID        string
+	Name      string
+	StartTime time.Time
+	EndTime   time.Time
+	State     StreamState
+}
+
+type Instruction int
+
+const Create Instruction = 0
+const Update Instruction = 1
+
+type RecordingInstruction struct {
+	Instruction Instruction
+	Recording   Recording
 }
