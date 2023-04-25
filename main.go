@@ -30,7 +30,7 @@ func main() {
 
 	var streams []*d.Stream
 	var recordings []d.Recording = make([]d.Recording, 0)
-	recordingsChannel := make(chan d.Recording)
+	recordingsChannel := make(chan d.RecordingInstruction)
 
 	configYamlFile, err := os.ReadFile("config.yml")
 
@@ -90,7 +90,28 @@ func main() {
 
 	go func() {
 		for msg := range recordingsChannel {
-			recordings = append(recordings, msg)
+			switch msg.Instruction {
+			case d.Create:
+				recordings = append(recordings, msg.Recording)
+
+			case d.Update:
+
+				idx := -1
+				for i, v := range recordings {
+
+					if v.ID == msg.Recording.ID {
+						idx = i
+						break
+
+					}
+				}
+
+				recordings[idx].EndTime = msg.Recording.EndTime
+				recordings[idx].StartTime = msg.Recording.StartTime
+				recordings[idx].State = msg.Recording.State
+
+			}
+
 			yamlData, err := yaml.Marshal(recordings)
 			if err != nil {
 				log.Printf("Failed to marshal YAML for all recordings: %s\n", err)
@@ -103,6 +124,6 @@ func main() {
 		}
 	}()
 
-	web.StartWeb(config.WebPort, &recordings, streams)
+	web.StartWeb(config.WebPort, &recordings, streams, recordingsChannel)
 
 }

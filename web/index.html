@@ -1,0 +1,102 @@
+<html>
+
+<body>
+    <h1>URY Recorder</h1>
+
+    <h3>Request New Stream</h3>
+    <div>
+
+        <label for="name">Name</label>
+        <input id="name">
+
+        <label for="start">Start</label>
+        <input id="start" type="datetime-local">
+
+        <label for="end">End</label>
+        <input id="end" type="datetime-local">
+
+        <label for="stream">Stream</label>
+        <select id="stream">
+            <option>live-high</option>
+            <option>roses-out-1</option>
+            <option>roses-out-2</option>
+            <option>roses-out-3</option>
+            <option>roses-out-4</option>
+            <option>roses-out-5</option>
+            <option>roses-out-6</option>
+            <option>roses-out-7</option>
+            <option>roses-out-8</option>
+        </select>
+
+        <button id="submit">Request</button>
+    </div>
+
+    <hr>
+    <h3>Existing Recordings</h3>
+    <table id="recordings">
+        <tr>
+            <th>Name</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>State</th>
+            <th>Link</th>
+        </tr>
+    </table>
+
+    <script>
+        fetch("/recordings-json").then((r) => r.json()).then((d) => {
+            console.log(d)
+            d.forEach(e => {
+                let tr = document.createElement("TR");
+
+                let name = document.createElement("TD");
+                name.innerText = e.Name;
+
+                let start = document.createElement("TD");
+                start.innerText = e.StartTime;
+
+                let end = document.createElement("TD");
+                end.innerText = e.EndTime;
+
+                let state = document.createElement("TD");
+                state.innerText = e.State;
+
+                let link = document.createElement("TD");
+                link.innerHTML = `<a href="/recordings/${e.ID}.mp3">Download</a>`;
+
+                tr.appendChild(name);
+                tr.appendChild(start);
+                tr.appendChild(end);
+                tr.appendChild(state);
+                tr.appendChild(link);
+
+                document.getElementById("recordings").appendChild(tr);
+
+            });
+        })
+
+        const submit = () => {
+
+            fetch("/request", {
+                method: "POST",
+                body: JSON.stringify({
+                    name: document.getElementById("name").value,
+                    startTime: document.getElementById("start").value + ":00+01:00",
+                    endTime: document.getElementById("end").value + ":00+01:00",
+                    stream: document.getElementById("stream").value
+                })
+            })
+
+            window.location.reload()
+
+            return false
+        }
+
+        document.getElementById("submit").onclick = () => {
+            submit()
+        };
+    </script>
+
+</body>
+
+</html
