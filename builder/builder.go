@@ -37,7 +37,7 @@ func buildRecording(id uuid.UUID, startTime time.Time, endTime time.Time, stream
 			return err
 		}
 
-		if fileTime < int(startTime.Add(time.Duration(-1*data.RecordingLength)*time.Minute).Unix()) || fileTime > int(endTime.Add(time.Duration(data.RecordingLength)*time.Minute).Unix()) {
+		if fileTime < int(startTime.Add(time.Duration(-1*data.RecordingLength)*time.Minute).Unix()) || fileTime > int(endTime.Unix()) {
 			return nil
 		}
 

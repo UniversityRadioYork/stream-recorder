@@ -21,8 +21,10 @@ var WebsocketMaster websocketH = websocketH{clients: make(map[*websocket.Conn]bo
 
 func StartWeb(port int, recordings *[]d.Recording, streams []*d.Stream, recordingsChannel chan<- d.RecordingInstruction) {
 
-	webFS := http.FileServer(http.Dir("frontend/build"))
-	http.Handle("/", webFS)
+	// webFS := http.FileServer(http.Dir("frontend/build"))
+	// http.Handle("/", webFS)
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "web/index.html") })
 
 	recordingsFS := http.FileServer(http.Dir("recordings"))
 	http.Handle("/recordings/", http.StripPrefix("/recordings/", recordingsFS))
